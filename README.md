@@ -18,7 +18,22 @@ python manage.py runserver
 Abrir el servidor http://127.0.0.1:8000/
 
 
-## Crear carpeta 
+## Evidencias de Funcionamiento
+
+Login:
+
+![image](https://github.com/user-attachments/assets/90f67767-7840-4d7f-b0dd-318cc673b77e)
+
+Registrar Usuario:
+
+![image](https://github.com/user-attachments/assets/41306bf5-1eed-4e75-b29d-3f77dec46b2f)
+
+Página Home para Usuarios:
+
+![image](https://github.com/user-attachments/assets/8bccdf2f-0542-42c4-a8b5-96fcf3dc79f2)
+
+## Crear carpetas
 
 Con el entorno activado: 
-python manage.py startapp tasks 
+python manage.py startapp NOMBRE 
+
