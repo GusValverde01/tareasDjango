@@ -9,17 +9,23 @@ Instalar el Entorno Virtual:
 
 pip install virtualenv
 
-Activar el Entorno Vitual:
+Crear carpeta venev para Entorno Vitual:
 
 virtualenv venv
 
 Usar Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
 
-Activar el entorno virtual con .\venv\Scripts\activate
+Activar el entorno virtual:
+
+.\venv\Scripts\activate
+
+## Instalar Django con el entorno virtual activado (venv):
 
 pip install django 
 
 django-admin startproject tareasDj4ngo . 
+
+## Iniciar el Desarrrollo
 
 python manage.py runserver 
 
