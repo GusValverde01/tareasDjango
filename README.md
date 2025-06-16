@@ -1,9 +1,17 @@
 
 ## Instalar proyecto y ejecución 
 
-Instalar pip install virtualenv
+Clonar el repositorio: 
 
-Activar virtualenv venv
+git clone https://github.com/GusValverde01/tareasDjango.git
+
+Instalar el Entorno Virtual:
+
+pip install virtualenv
+
+Activar el Entorno Vitual:
+
+virtualenv venv
 
 Usar Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
 
