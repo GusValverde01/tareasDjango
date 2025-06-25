@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Favoritos - MediaFind{% endblock %}
+
+{% block content %}
+<div class="favorites-page">
+    <div class="page-header">
+        <h1><i class="fas fa-heart"></i> Mis Favoritos</h1>
+        <p>Tu colección personal de contenido favorito</p>
+    </div>
+
+    {% if page_obj.object_list %}
+        <div class="content-grid">
+            {% for favorite in page_obj %}
+            <div class="content-card">
+                {% if favorite.content.image_url %}
+                    <img src="{{ favorite.content.image_url }}" alt="{{ favorite.content.title }}" class="content-image">
+                {% else %}
+                    <div class="content-placeholder">
+                        {% if favorite.content.content_type == 'movie' %}
+                            <i class="fas fa-film"></i>
+                        {% elif favorite.content.content_type == 'series' %}
+                            <i class="fas fa-tv"></i>
+                        {% elif favorite.content.content_type == 'book' %}
+                            <i class="fas fa-book"></i>
+                        {% elif favorite.content.content_type == 'anime' %}
+                            <i class="fas fa-dragon"></i>
+                        {% elif favorite.content.content_type == 'videogame' %}
+                            <i class="fas fa-gamepad"></i>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                
+                <div class="content-info">
+                    <h3>{{ favorite.content.title }}</h3>
+                    <p class="content-type">{{ favorite.content.get_content_type_display }}</p>
+                    
+                    {% if favorite.content.release_date %}
+                        <p class="release-date">{{ favorite.content.release_date|date:"Y" }}</p>
+                    {% endif %}
+                    
+                    {% if favorite.content.rating %}
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            {{ favorite.content.rating|floatformat:1 }}/10
+                        </div>
+                    {% endif %}
+                    
+                    {% if favorite.content.genres.all %}
+                        <div class="genres">
+                            {% for genre in favorite.content.genres.all|slice:":3" %}
+                                <span class="genre-tag">{{ genre.name }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <p class="favorite-date">
+                        <i class="fas fa-clock"></i>
+                        Agregado {{ favorite.added_at|date:"d/m/Y" }}
+                    </p>
+                </div>
+                
+                <div class="card-actions">
+                    <a href="{% url 'content_detail' favorite.content.id %}" class="btn btn-primary btn-small">
+                        <i class="fas fa-eye"></i> Ver detalles
+                    </a>
+                    <button onclick="toggleFavorite({{ favorite.content.id }})" class="btn btn-outline btn-small">
+                        <i class="fas fa-heart-broken"></i> Quitar
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Paginación -->
+        {% if page_obj.has_other_pages %}
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline">
+                        <i class="fas fa-chevron-left"></i> Anterior
+                    </a>
+                {% endif %}
+                
+                <span class="page-info">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                </span>
+                
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline">
+                        Siguiente <i class="fas fa-chevron-right"></i>
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+        
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="far fa-heart"></i>
+            </div>
+            <h3>No tienes favoritos aún</h3>
+            <p>Explora contenido y agrega tus películas, series, libros, anime y videojuegos favoritos.</p>
+            <a href="{% url 'search' %}" class="btn btn-primary">
+                <i class="fas fa-search"></i> Explorar Contenido
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.favorites-page {
+    padding: 2rem 0;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.page-header h1 {
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.page-header p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+.favorite-date {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+}
+
+.favorite-date i {
+    margin-right: 0.25rem;
+}
+</style>
+{% endblock %}

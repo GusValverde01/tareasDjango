@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+
+{% block title %}Búsqueda - MediaFind{% endblock %}
+
+{% block content %}
+<div class="search-page">
+    <div class="search-filters">
+        <h2><i class="fas fa-filter"></i> Filtros de Búsqueda</h2>
+        
+        <form method="get" class="filters-form">
+            <div class="filter-group">
+                <label for="q">Buscar:</label>
+                <input type="text" id="q" name="q" value="{{ query }}" placeholder="Título, director, autor...">
+            </div>
+            
+            <div class="filter-group">
+                <label for="type">Tipo de Contenido:</label>
+                <select id="type" name="type">
+                    <option value="">Todos</option>
+                    {% for value, display in content_types %}
+                        <option value="{{ value }}" {% if content_type == value %}selected{% endif %}>{{ display }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="genre">Género:</label>
+                <select id="genre" name="genre">
+                    <option value="">Todos</option>
+                    {% for g in genres %}
+                        <option value="{{ g.name }}" {% if genre == g.name %}selected{% endif %}>{{ g.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="sort">Ordenar por:</label>
+                <select id="sort" name="sort">
+                    <option value="title" {% if sort_by == 'title' %}selected{% endif %}>Título</option>
+                    <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>Calificación</option>
+                    <option value="date" {% if sort_by == 'date' %}selected{% endif %}>Fecha de lanzamiento</option>
+                </select>
+            </div>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search"></i> Buscar
+            </button>
+            
+            {% if query %}
+            <button type="submit" name="external" value="true" class="btn btn-secondary">
+                <i class="fas fa-globe"></i> Buscar en APIs externas
+            </button>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="search-results">
+        <!-- Resultados de APIs externas -->
+        {% if external_results %}
+        <div class="external-results">
+            <h2><i class="fas fa-globe"></i> Resultados de APIs Externas</h2>
+            <p class="results-info">{{ external_results|length }} resultado{{ external_results|length|pluralize }} encontrado{{ external_results|length|pluralize }} en APIs externas</p>
+            
+            <div class="content-grid">
+                {% for item in external_results %}
+                <div class="content-card external-content">
+                    {% if item.image_url %}
+                        <img src="{{ item.image_url }}" alt="{{ item.title }}" class="content-image">
+                    {% else %}
+                        <div class="content-placeholder">
+                            {% if item.content_type == 'movie' %}
+                                <i class="fas fa-film"></i>
+                            {% elif item.content_type == 'series' %}
+                                <i class="fas fa-tv"></i>
+                            {% elif item.content_type == 'book' %}
+                                <i class="fas fa-book"></i>
+                            {% elif item.content_type == 'anime' %}
+                                <i class="fas fa-dragon"></i>
+                            {% elif item.content_type == 'videogame' %}
+                                <i class="fas fa-gamepad"></i>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="content-info">
+                        <h3>{{ item.title }}</h3>
+                        <p class="content-type">{{ item.content_type|title }}</p>
+                        
+                        {% if item.release_date %}
+                            <p class="release-date">{{ item.release_date|date:"Y" }}</p>
+                        {% endif %}
+                        
+                        {% if item.rating %}
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                {{ item.rating|floatformat:1 }}/10
+                            </div>
+                        {% endif %}
+                        
+                        {% if item.genres %}
+                            <div class="genres">
+                                {% for genre in item.genres|slice:":3" %}
+                                    <span class="genre-tag">{{ genre }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <p class="description">{{ item.description|truncatewords:20 }}</p>
+                        
+                        {% if item.author %}
+                            <p class="author"><strong>Autor:</strong> {{ item.author }}</p>
+                        {% endif %}
+                        
+                        {% if item.studio %}
+                            <p class="studio"><strong>Estudio:</strong> {{ item.studio }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card-actions">
+                        <button onclick="importContent({{ item|safe }})" class="btn btn-success btn-small import-btn">
+                            <i class="fas fa-download"></i> Importar
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <hr>
+        {% endif %}
+        
+        {% if query %}
+            <h2>Resultados Locales para "{{ query }}"</h2>
+            {% if page_obj.object_list %}
+                <p class="results-info">{{ page_obj.paginator.count }} resultado{{ page_obj.paginator.count|pluralize }} encontrado{{ page_obj.paginator.count|pluralize }} en la base de datos local</p>
+            {% endif %}
+        {% else %}
+            <h2>Explorar Todo el Contenido</h2>
+        {% endif %}
+
+        {% if page_obj.object_list %}
+            <div class="content-grid">
+                {% for item in page_obj %}
+                <div class="content-card">
+                    {% if item.image_url %}
+                        <img src="{{ item.image_url }}" alt="{{ item.title }}" class="content-image">
+                    {% else %}
+                        <div class="content-placeholder">
+                            {% if item.content_type == 'movie' %}
+                                <i class="fas fa-film"></i>
+                            {% elif item.content_type == 'series' %}
+                                <i class="fas fa-tv"></i>
+                            {% elif item.content_type == 'book' %}
+                                <i class="fas fa-book"></i>
+                            {% elif item.content_type == 'anime' %}
+                                <i class="fas fa-dragon"></i>
+                            {% elif item.content_type == 'videogame' %}
+                                <i class="fas fa-gamepad"></i>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="content-info">
+                        <h3>{{ item.title }}</h3>
+                        <p class="content-type">{{ item.get_content_type_display }}</p>
+                        
+                        {% if item.release_date %}
+                            <p class="release-date">{{ item.release_date|date:"Y" }}</p>
+                        {% endif %}
+                        
+                        {% if item.rating %}
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                {{ item.rating|floatformat:1 }}/10
+                            </div>
+                        {% endif %}
+                        
+                        {% if item.genres.all %}
+                            <div class="genres">
+                                {% for genre in item.genres.all|slice:":3" %}
+                                    <span class="genre-tag">{{ genre.name }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <p class="description">{{ item.description|truncatewords:20 }}</p>
+                    </div>
+                    
+                    <div class="card-actions">
+                        <a href="{% url 'content_detail' item.id %}" class="btn btn-primary btn-small">
+                            <i class="fas fa-eye"></i> Ver detalles
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Paginación -->
+            {% if page_obj.has_other_pages %}
+                <div class="pagination">
+                    {% if page_obj.has_previous %}
+                        <a href="?{% if query %}q={{ query }}&{% endif %}{% if content_type %}type={{ content_type }}&{% endif %}{% if genre %}genre={{ genre }}&{% endif %}{% if sort_by %}sort={{ sort_by }}&{% endif %}page={{ page_obj.previous_page_number }}" class="btn btn-outline">
+                            <i class="fas fa-chevron-left"></i> Anterior
+                        </a>
+                    {% endif %}
+                    
+                    <span class="page-info">
+                        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                    </span>
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?{% if query %}q={{ query }}&{% endif %}{% if content_type %}type={{ content_type }}&{% endif %}{% if genre %}genre={{ genre }}&{% endif %}{% if sort_by %}sort={{ sort_by }}&{% endif %}page={{ page_obj.next_page_number }}" class="btn btn-outline">
+                            Siguiente <i class="fas fa-chevron-right"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                {% if query %}
+                    <h3>No se encontraron resultados</h3>
+                    <p>Intenta con otros términos de búsqueda o cambia los filtros.</p>
+                {% else %}
+                    <h3>No hay contenido disponible</h3>
+                    <p>El catálogo está vacío. Contacta al administrador para agregar contenido.</p>
+                {% endif %}
+            </div>        {% endif %}
+    </div>
+</div>
+
+<script>
+function importContent(apiData) {
+    if (!confirm('¿Deseas importar este contenido a la base de datos?')) {
+        return;
+    }
+    
+    const button = event.target.closest('.import-btn');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importando...';
+    button.disabled = true;
+    
+    fetch('{% url "import_external_content" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: 'api_data=' + encodeURIComponent(JSON.stringify(apiData))
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            button.innerHTML = '<i class="fas fa-check"></i> Importado';
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline');
+            setTimeout(() => {
+                if (data.content_id) {
+                    window.location.href = `/content/${data.content_id}/`;
+                }
+            }, 1000);
+        } else {
+            alert('Error al importar: ' + data.message);
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error de conexión');
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+</script>
+{% endblock %}

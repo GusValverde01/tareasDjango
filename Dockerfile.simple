@@ -1,0 +1,27 @@
+# Usar imagen base de Python más simple
+FROM python:3.11
+
+# Establecer variables de entorno
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Establecer directorio de trabajo
+WORKDIR /app
+
+# Copiar archivos de requirements
+COPY requirements.txt /app/
+
+# Instalar dependencias de Python
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar código del proyecto
+COPY . /app/
+
+# Crear directorios necesarios
+RUN mkdir -p /app/staticfiles /app/media
+
+# Exponer puerto
+EXPOSE 8000
+
+# Comando por defecto simplificado
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

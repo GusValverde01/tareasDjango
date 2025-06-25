@@ -1,0 +1,21 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./media:/app/media
+      - ./staticfiles:/app/staticfiles
+      - ./db.sqlite3:/app/db.sqlite3
+    environment:
+      - DEBUG=True
+      - DJANGO_SUPERUSER_USERNAME=admin
+      - DJANGO_SUPERUSER_EMAIL=admin@mediafind.com
+      - DJANGO_SUPERUSER_PASSWORD=admin123
+      - POPULATE_DB=true
+    networks:
+      - mediafind-network
+
+networks:
+  mediafind-network:
+    driver: bridge

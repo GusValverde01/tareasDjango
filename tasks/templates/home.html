@@ -1,63 +1,183 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard - Gestor de Tareas{% endblock %}
+{% block title %}Inicio - MediaFind{% endblock %}
 
 {% block content %}
-<div class="task-list">
-    <h2>📋 Mis Tareas</h2>
-    
-    <div style="text-align: center; margin-bottom: 30px;">
-        <a href="/create-task/" class="btn btn-primary">➕ Crear Nueva Tarea</a>
-        <a href="/logout/" class="btn btn-secondary">🚪 Cerrar Sesión</a>
+<div class="home-dashboard">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1>¡Bienvenido a MediaFind!</h1>
+            <p>Descubre, califica y recibe recomendaciones personalizadas de películas, series, libros, anime y videojuegos</p>
+        </div>
     </div>
-    
-    <h3>⏳ Tareas Pendientes</h3>
-    {% if pending_tasks %}
-        {% for task in pending_tasks %}
-            <div class="task-item">
-                <div class="task-title">{{ task.title }}</div>
-                <div class="task-description">{{ task.description }}</div>
-                <div class="task-meta">
-                    <span class="priority-badge priority-{{ task.priority }}">
-                        {{ task.get_priority_display }}
-                    </span>
-                    <small>Creada: {{ task.created_at|date:"d/m/Y H:i" }}</small>
+
+    <!-- Contenido Popular -->
+    {% if popular_content %}
+    <section class="content-section">
+        <h2><i class="fas fa-fire"></i> Contenido Popular</h2>
+        <div class="content-grid">
+            {% for item in popular_content %}
+            <div class="content-card">
+                {% if item.image_url %}
+                    <img src="{{ item.image_url }}" alt="{{ item.title }}" class="content-image">
+                {% else %}
+                    <div class="content-placeholder">
+                        {% if item.content_type == 'movie' %}
+                            <i class="fas fa-film"></i>
+                        {% elif item.content_type == 'series' %}
+                            <i class="fas fa-tv"></i>
+                        {% elif item.content_type == 'book' %}
+                            <i class="fas fa-book"></i>
+                        {% elif item.content_type == 'anime' %}
+                            <i class="fas fa-dragon"></i>
+                        {% elif item.content_type == 'videogame' %}
+                            <i class="fas fa-gamepad"></i>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                <div class="content-info">
+                    <h3>{{ item.title }}</h3>
+                    <p class="content-type">{{ item.get_content_type_display }}</p>
+                    {% if item.avg_rating %}
+                        <div class="rating">
+                            <i class="fas fa-star"></i>
+                            {{ item.avg_rating|floatformat:1 }}/5
+                        </div>
+                    {% endif %}
                 </div>
-                <div class="task-actions">
-                    <a href="/complete-task/{{ task.id }}/" class="btn btn-success task-action-btn">✅ Completar</a>
-                    <a href="/delete-task/{{ task.id }}/" class="btn btn-danger task-action-btn">🗑️ Eliminar</a>
-                </div>
+                <a href="{% url 'content_detail' item.id %}" class="btn btn-primary btn-small">Ver detalles</a>
             </div>
-        {% endfor %}
-    {% else %}
-        <div class="empty-state">
-            <div class="empty-state-icon">📝</div>
-            <p>No tienes tareas pendientes. ¡Crea una nueva!</p>
+            {% endfor %}
         </div>
+    </section>
     {% endif %}
-    
-    <h3>✅ Tareas Completadas</h3>
-    {% if completed_tasks %}
-        {% for task in completed_tasks %}
-            <div class="task-item completed">
-                <div class="task-title">{{ task.title }}</div>
-                <div class="task-description">{{ task.description }}</div>
-                <div class="task-meta">
-                    <span class="priority-badge priority-{{ task.priority }}">
-                        {{ task.get_priority_display }}
-                    </span>
-                    <small>Completada: {{ task.updated_at|date:"d/m/Y H:i" }}</small>
+
+    <!-- Contenido Reciente -->
+    {% if recent_content %}
+    <section class="content-section">
+        <h2><i class="fas fa-clock"></i> Agregado Recientemente</h2>
+        <div class="content-grid">
+            {% for item in recent_content %}
+            <div class="content-card">
+                {% if item.image_url %}
+                    <img src="{{ item.image_url }}" alt="{{ item.title }}" class="content-image">
+                {% else %}
+                    <div class="content-placeholder">
+                        {% if item.content_type == 'movie' %}
+                            <i class="fas fa-film"></i>
+                        {% elif item.content_type == 'series' %}
+                            <i class="fas fa-tv"></i>
+                        {% elif item.content_type == 'book' %}
+                            <i class="fas fa-book"></i>
+                        {% elif item.content_type == 'anime' %}
+                            <i class="fas fa-dragon"></i>
+                        {% elif item.content_type == 'videogame' %}
+                            <i class="fas fa-gamepad"></i>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                <div class="content-info">
+                    <h3>{{ item.title }}</h3>
+                    <p class="content-type">{{ item.get_content_type_display }}</p>
+                    {% if item.release_date %}
+                        <p class="release-date">{{ item.release_date|date:"Y" }}</p>
+                    {% endif %}
                 </div>
-                <div class="task-actions">
-                    <a href="/delete-task/{{ task.id }}/" class="btn btn-danger task-action-btn">🗑️ Eliminar</a>
-                </div>
+                <a href="{% url 'content_detail' item.id %}" class="btn btn-primary btn-small">Ver detalles</a>
             </div>
-        {% endfor %}
-    {% else %}
-        <div class="empty-state">
-            <div class="empty-state-icon">🎉</div>
-            <p>No tienes tareas completadas aún.</p>
+            {% endfor %}
         </div>
+    </section>
+    {% endif %}
+
+    <!-- Recomendaciones Personalizadas -->
+    {% if recommended_content %}
+    <section class="content-section">
+        <h2><i class="fas fa-magic"></i> Recomendado para Ti</h2>
+        <div class="content-grid">
+            {% for item in recommended_content %}
+            <div class="content-card">
+                {% if item.image_url %}
+                    <img src="{{ item.image_url }}" alt="{{ item.title }}" class="content-image">
+                {% else %}
+                    <div class="content-placeholder">
+                        {% if item.content_type == 'movie' %}
+                            <i class="fas fa-film"></i>
+                        {% elif item.content_type == 'series' %}
+                            <i class="fas fa-tv"></i>
+                        {% elif item.content_type == 'book' %}
+                            <i class="fas fa-book"></i>
+                        {% elif item.content_type == 'anime' %}
+                            <i class="fas fa-dragon"></i>
+                        {% elif item.content_type == 'videogame' %}
+                            <i class="fas fa-gamepad"></i>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                <div class="content-info">
+                    <h3>{{ item.title }}</h3>
+                    <p class="content-type">{{ item.get_content_type_display }}</p>
+                    <div class="genres">
+                        {% for genre in item.genres.all|slice:":3" %}
+                            <span class="genre-tag">{{ genre.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <a href="{% url 'content_detail' item.id %}" class="btn btn-primary btn-small">Ver detalles</a>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Mis Favoritos -->
+    {% if user_favorites %}
+    <section class="content-section">
+        <h2><i class="fas fa-heart"></i> Mis Favoritos</h2>
+        <div class="content-grid">
+            {% for favorite in user_favorites %}
+            <div class="content-card">
+                {% if favorite.content.image_url %}
+                    <img src="{{ favorite.content.image_url }}" alt="{{ favorite.content.title }}" class="content-image">
+                {% else %}
+                    <div class="content-placeholder">
+                        {% if favorite.content.content_type == 'movie' %}
+                            <i class="fas fa-film"></i>
+                        {% elif favorite.content.content_type == 'series' %}
+                            <i class="fas fa-tv"></i>
+                        {% elif favorite.content.content_type == 'book' %}
+                            <i class="fas fa-book"></i>
+                        {% elif favorite.content.content_type == 'anime' %}
+                            <i class="fas fa-dragon"></i>
+                        {% elif favorite.content.content_type == 'videogame' %}
+                            <i class="fas fa-gamepad"></i>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                <div class="content-info">
+                    <h3>{{ favorite.content.title }}</h3>
+                    <p class="content-type">{{ favorite.content.get_content_type_display }}</p>
+                </div>
+                <a href="{% url 'content_detail' favorite.content.id %}" class="btn btn-primary btn-small">Ver detalles</a>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="section-footer">
+            <a href="{% url 'user_favorites' %}" class="btn btn-outline">Ver todos mis favoritos</a>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Estado vacío si no hay contenido -->
+    {% if not popular_content and not recent_content and not recommended_content and not user_favorites %}
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="fas fa-search"></i>
+        </div>
+        <h2>¡Comienza a explorar!</h2>
+        <p>Parece que el catálogo está vacío. Utiliza la búsqueda para descubrir contenido o contacta al administrador.</p>        <a href="{% url 'search' %}" class="btn btn-primary">Buscar Contenido</a>
+    </div>
     {% endif %}
 </div>
 {% endblock %}

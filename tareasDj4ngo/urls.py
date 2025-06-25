@@ -1,18 +1,8 @@
 """
-URL configuration for tareasDj4ngo project.
+URL configuration for Sistema de Búsqueda y Recomendación Multimodal.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
 from django.urls import path
@@ -24,7 +14,12 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('home/', views.home, name='home'),
     path('logout/', views.logout_view, name='logout'),
-    path('create-task/', views.create_task, name='create_task'),
-    path('complete-task/<int:task_id>/', views.complete_task, name='complete_task'),
-    path('delete-task/<int:task_id>/', views.delete_task, name='delete_task'),
+    path('search/', views.search, name='search'),
+    path('content/<int:content_id>/', views.content_detail, name='content_detail'),
+    path('rate/<int:content_id>/', views.rate_content, name='rate_content'),
+    path('favorite/<int:content_id>/', views.toggle_favorite, name='toggle_favorite'),
+    path('favorites/', views.user_favorites, name='user_favorites'),
+    path('profile/', views.user_profile, name='user_profile'),
+    path('import-content/', views.import_external_content, name='import_external_content'),
+    path('test-apis/', views.test_apis, name='test_apis'),
 ]

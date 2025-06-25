@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ content.title }} - MediaFind{% endblock %}
+
+{% block content %}
+<div class="content-detail">
+    <div class="content-header">
+        <div class="content-image-section">
+            {% if content.image_url %}
+                <img src="{{ content.image_url }}" alt="{{ content.title }}" class="content-detail-image">
+            {% else %}
+                <div class="content-detail-placeholder">
+                    {% if content.content_type == 'movie' %}
+                        <i class="fas fa-film"></i>
+                    {% elif content.content_type == 'series' %}
+                        <i class="fas fa-tv"></i>
+                    {% elif content.content_type == 'book' %}
+                        <i class="fas fa-book"></i>
+                    {% elif content.content_type == 'anime' %}
+                        <i class="fas fa-dragon"></i>
+                    {% elif content.content_type == 'videogame' %}
+                        <i class="fas fa-gamepad"></i>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="content-info-section">
+            <h1>{{ content.title }}</h1>
+            <p class="content-type-badge">{{ content.get_content_type_display }}</p>
+            
+            <div class="content-meta">
+                {% if content.release_date %}
+                    <div class="meta-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>{{ content.release_date|date:"d/m/Y" }}</span>
+                    </div>
+                {% endif %}
+                
+                {% if content.duration %}
+                    <div class="meta-item">
+                        <i class="fas fa-clock"></i>
+                        <span>{{ content.duration }} minutos</span>
+                    </div>
+                {% endif %}
+                
+                {% if content.director %}
+                    <div class="meta-item">
+                        <i class="fas fa-user-tie"></i>
+                        <span>Director: {{ content.director }}</span>
+                    </div>
+                {% endif %}
+                
+                {% if content.author %}
+                    <div class="meta-item">
+                        <i class="fas fa-pen"></i>
+                        <span>Autor: {{ content.author }}</span>
+                    </div>
+                {% endif %}
+                
+                {% if content.studio %}
+                    <div class="meta-item">
+                        <i class="fas fa-building"></i>
+                        <span>Estudio: {{ content.studio }}</span>
+                    </div>
+                {% endif %}
+                
+                {% if content.platform %}
+                    <div class="meta-item">
+                        <i class="fas fa-gamepad"></i>
+                        <span>Plataforma: {{ content.platform }}</span>
+                    </div>
+                {% endif %}
+            </div>
+            
+            {% if avg_rating %}
+                <div class="rating-summary">
+                    <div class="avg-rating">
+                        <i class="fas fa-star"></i>
+                        <span class="rating-value">{{ avg_rating|floatformat:1 }}</span>
+                        <span class="rating-max">/5</span>
+                    </div>
+                    <p class="rating-count">{{ ratings.count }} calificacion{{ ratings.count|pluralize:"es" }}</p>
+                </div>
+            {% endif %}
+            
+            {% if content.genres.all %}
+                <div class="genres-section">
+                    <h3>Géneros</h3>
+                    <div class="genres">
+                        {% for genre in content.genres.all %}
+                            <span class="genre-tag">{{ genre.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <div class="action-buttons">
+                {% csrf_token %}
+                <button id="favorite-btn-{{ content.id }}" 
+                        onclick="toggleFavorite({{ content.id }})" 
+                        class="btn {% if is_favorite %}btn-favorite{% else %}btn-outline{% endif %}">
+                    {% if is_favorite %}
+                        <i class="fas fa-heart"></i> En Favoritos
+                    {% else %}
+                        <i class="far fa-heart"></i> Agregar a Favoritos
+                    {% endif %}
+                </button>
+                
+                {% if content.trailer_url %}
+                    <a href="{{ content.trailer_url }}" target="_blank" class="btn btn-secondary">
+                        <i class="fas fa-play"></i> Ver Trailer
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="content-description">
+        <h2>Descripción</h2>
+        <p>{{ content.description }}</p>
+    </div>
+    
+    <!-- Sección de Calificación del Usuario -->
+    <div class="user-rating-section">
+        <h2>Tu Calificación</h2>
+        {% if user_rating %}
+            <div class="existing-rating">
+                <p>Tu calificación: <strong>{{ user_rating.rating }}/5</strong></p>
+                {% if user_rating.review %}
+                    <p><em>"{{ user_rating.review }}"</em></p>
+                {% endif %}
+            </div>
+        {% endif %}
+        
+        <form method="post" action="{% url 'rate_content' content.id %}" class="rating-form">
+            {% csrf_token %}
+            <div class="rating-input">
+                <label for="rating">Calificación (1-5):</label>
+                <select name="rating" id="rating" required>
+                    <option value="">Selecciona...</option>
+                    {% for i in "12345" %}
+                        <option value="{{ i }}" {% if user_rating.rating == i|add:0 %}selected{% endif %}>{{ i }} estrella{{ i|pluralize }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="review-input">
+                <label for="review">Reseña (opcional):</label>
+                <textarea name="review" id="review" placeholder="Comparte tu opinión...">{% if user_rating %}{{ user_rating.review }}{% endif %}</textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+                {% if user_rating %}
+                    <i class="fas fa-edit"></i> Actualizar Calificación
+                {% else %}
+                    <i class="fas fa-star"></i> Calificar
+                {% endif %}
+            </button>
+        </form>
+    </div>
+    
+    <!-- Calificaciones de Otros Usuarios -->
+    {% if ratings %}
+    <div class="other-ratings-section">
+        <h2>Calificaciones de la Comunidad</h2>
+        {% for rating in ratings %}
+            {% if rating.user != user %}
+            <div class="rating-card">
+                <div class="rating-header">
+                    <strong>{{ rating.user.username }}</strong>
+                    <div class="rating-stars">
+                        {% for i in "12345" %}
+                            {% if i|add:0 <= rating.rating %}
+                                <i class="fas fa-star"></i>
+                            {% else %}
+                                <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                        <span class="rating-number">{{ rating.rating }}/5</span>
+                    </div>
+                </div>
+                {% if rating.review %}
+                    <p class="rating-review">{{ rating.review }}</p>
+                {% endif %}
+                <small class="rating-date">{{ rating.created_at|date:"d/m/Y" }}</small>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Contenido Relacionado -->
+    {% if related_content %}
+    <div class="related-content-section">
+        <h2>Contenido Relacionado</h2>
+        <div class="content-grid">
+            {% for item in related_content %}
+            <div class="content-card">
+                {% if item.image_url %}
+                    <img src="{{ item.image_url }}" alt="{{ item.title }}" class="content-image">
+                {% else %}
+                    <div class="content-placeholder">
+                        {% if item.content_type == 'movie' %}
+                            <i class="fas fa-film"></i>
+                        {% elif item.content_type == 'series' %}
+                            <i class="fas fa-tv"></i>
+                        {% elif item.content_type == 'book' %}
+                            <i class="fas fa-book"></i>
+                        {% elif item.content_type == 'anime' %}
+                            <i class="fas fa-dragon"></i>
+                        {% elif item.content_type == 'videogame' %}
+                            <i class="fas fa-gamepad"></i>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                
+                <div class="content-info">
+                    <h3>{{ item.title }}</h3>
+                    <p class="content-type">{{ item.get_content_type_display }}</p>
+                </div>
+                
+                <a href="{% url 'content_detail' item.id %}" class="btn btn-primary btn-small">Ver detalles</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

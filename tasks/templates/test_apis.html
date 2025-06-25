@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Prueba de APIs - MediaFind{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1><i class="fas fa-cog"></i> Prueba de APIs Externas</h1>
+    
+    <div class="test-form">
+        <h2>Probar Integración con APIs</h2>
+        <form id="testForm">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="query">Búsqueda:</label>
+                <input type="text" id="query" name="query" value="naruto" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="content_type">Tipo de Contenido:</label>
+                <select id="content_type" name="content_type">
+                    <option value="">Todos</option>
+                    <option value="anime">Anime</option>
+                    <option value="series">Series</option>
+                    <option value="book">Libros</option>
+                    <option value="movie">Películas</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search"></i> Probar APIs
+            </button>
+        </form>
+    </div>
+    
+    <div id="results" class="test-results" style="display: none;">
+        <h3>Resultados:</h3>
+        <div id="resultsContent"></div>
+    </div>
+</div>
+
+<style>
+.test-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.test-results {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+}
+
+.api-result {
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+}
+
+.api-result h4 {
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+}
+</style>
+
+<script>
+document.getElementById('testForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const resultsDiv = document.getElementById('results');
+    const resultsContent = document.getElementById('resultsContent');
+    
+    resultsContent.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Consultando APIs...</div>';
+    resultsDiv.style.display = 'block';
+    
+    fetch('{% url "test_apis" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let html = `<p><strong>Encontrados ${data.count} resultados:</strong></p>`;
+            
+            if (data.results.length > 0) {
+                data.results.forEach(item => {
+                    html += `
+                        <div class="api-result">
+                            <h4>${item.title}</h4>
+                            <p><strong>Tipo:</strong> ${item.content_type}</p>
+                            ${item.description ? `<p><strong>Descripción:</strong> ${item.description.substring(0, 200)}...</p>` : ''}
+                            ${item.release_date ? `<p><strong>Fecha:</strong> ${item.release_date}</p>` : ''}
+                            ${item.rating ? `<p><strong>Rating:</strong> ${item.rating}/10</p>` : ''}
+                            ${item.genres ? `<p><strong>Géneros:</strong> ${item.genres.join(', ')}</p>` : ''}
+                            ${item.image_url ? `<img src="${item.image_url}" alt="${item.title}" style="max-width: 100px; height: auto;">` : ''}
+                        </div>
+                    `;
+                });
+            } else {
+                html += '<p>No se encontraron resultados.</p>';
+            }
+            
+            resultsContent.innerHTML = html;
+        } else {
+            resultsContent.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        resultsContent.innerHTML = '<div class="error">Error de conexión</div>';
+    });
+});
+</script>
+{% endblock %}
