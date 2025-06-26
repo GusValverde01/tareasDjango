@@ -8,6 +8,8 @@ https://youtu.be/22V8Lp28mBc
 
 ## Pruebas de Funcionamiento
 
+![image](https://github.com/user-attachments/assets/4161d02e-3b51-40b8-b894-ae283f4d5f7f)
+![image](https://github.com/user-attachments/assets/4161d02e-3b51-40b8-b894-ae283f4d5f7f)
 
 
 ## ✨ Características
