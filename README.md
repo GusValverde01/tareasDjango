@@ -21,13 +21,6 @@ https://youtu.be/22V8Lp28mBc
 - ❤️ **Favoritos personales**: Gestiona tu lista de favoritos
 - 🎯 **Recomendaciones**: Basadas en géneros y preferencias
 
-## Pruebas de Funcionamiento
-
-![image](https://github.com/user-attachments/assets/3cdc9b49-b611-4ac6-9570-96fd000b695a)
-
-
-
-
 ## 🚀 Instalación y Ejecución
 
 ### 🖥️ Ejecución Local
