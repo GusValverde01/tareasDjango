@@ -13,6 +13,7 @@ services:
       - DJANGO_SUPERUSER_EMAIL=admin@mediafind.com
       - DJANGO_SUPERUSER_PASSWORD=admin123
       - POPULATE_DB=true
+      # No DATABASE_URL = usa SQLite por defecto
     networks:
       - mediafind-network
 

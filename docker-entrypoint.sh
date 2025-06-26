@@ -5,21 +5,63 @@ set -e
 
 echo "🚀 Iniciando MediaFind..."
 
+# Función para esperar a PostgreSQL
+wait_for_postgres() {
+    local host=$1
+    local port=$2
+    local max_attempts=60  # 60 intentos = 5 minutos máximo
+    local attempt=1
+    
+    echo "⏳ Esperando a que PostgreSQL esté disponible en $host:$port..."
+    
+    while [ $attempt -le $max_attempts ]; do
+        if nc -z $host $port 2>/dev/null; then
+            echo "✅ PostgreSQL disponible!"
+            # Esperar un poco más para asegurar que la DB esté completamente inicializada
+            sleep 10
+            return 0
+        fi
+        
+        echo "🔄 Intento $attempt/$max_attempts - PostgreSQL no disponible, esperando..."
+        sleep 5
+        attempt=$((attempt + 1))
+    done
+    
+    echo "❌ Error: PostgreSQL no disponible después de $max_attempts intentos"
+    return 1
+}
+
 # Esperar a que la base de datos esté disponible (solo si se usa PostgreSQL)
 if [ "$DATABASE_URL" ]; then
-    echo "⏳ Esperando a que PostgreSQL esté disponible..."
-    
     # Extraer información de la URL de la base de datos
     DB_HOST=$(echo $DATABASE_URL | sed 's/.*@\([^:]*\):.*/\1/')
     DB_PORT=$(echo $DATABASE_URL | sed 's/.*:\([0-9]*\)\/.*/\1/')
     
-    # Esperar hasta que PostgreSQL esté disponible
-    while ! nc -z $DB_HOST $DB_PORT; do
-        echo "🔄 PostgreSQL no disponible en $DB_HOST:$DB_PORT, esperando..."
-        sleep 1
+    if ! wait_for_postgres $DB_HOST $DB_PORT; then
+        echo "❌ No se pudo conectar a PostgreSQL. Saliendo..."
+        exit 1
+    fi
+    
+    # Verificar conexión a la base de datos con reintentos
+    echo "🔗 Verificando conexión a la base de datos..."
+    max_db_attempts=10
+    db_attempt=1
+    
+    while [ $db_attempt -le $max_db_attempts ]; do
+        if python manage.py check --database default >/dev/null 2>&1; then
+            echo "✅ Conexión a la base de datos verificada!"
+            break
+        fi
+        
+        echo "🔄 Intento $db_attempt/$max_db_attempts - Verificando conexión DB..."
+        sleep 3
+        db_attempt=$((db_attempt + 1))
     done
     
-    echo "✅ PostgreSQL disponible!"
+    if [ $db_attempt -gt $max_db_attempts ]; then
+        echo "❌ Error: No se pudo verificar la conexión a la base de datos"
+        exit 1
+    fi
 fi
 
 # Ejecutar migraciones
