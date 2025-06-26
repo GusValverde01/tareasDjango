@@ -6,6 +6,9 @@ Sistema de recomendación que permite buscar, calificar y gestionar contenido mu
 # Video de Funcionamiento y Dockerizacion
 https://youtu.be/22V8Lp28mBc
 
+## Pruebas de Funcionamiento
+
+
 
 ## ✨ Características
 
